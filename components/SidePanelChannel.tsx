@@ -1,0 +1,36 @@
+import { useHarmonySelector } from "../lib/ReduxState";
+import HText from "./HText";
+import SidePanelUser from "./SidePanelUser";
+
+export default function SidePanelChannel({
+  channel: channelID,
+}: {
+  channel: string;
+}) {
+  const users = useHarmonySelector((state) => {
+    return state.servers[state.activeServer].users
+      .map((u) => state.users[u])
+      .filter((user) => user != null && user.channel === channelID);
+  });
+  const channel = useHarmonySelector((state) => {
+    return state.channels[channelID];
+  });
+  const viewer = useHarmonySelector((state) => state.viewer);
+  return (
+    <div style={{ fontSize: 14 }}>
+      <HText
+        color={
+          users.find((u) => u.id === viewer) != null ? "header-light" : "header"
+        }
+        weight="semibold"
+      >
+        {channel.name}
+      </HText>
+      <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+        {users.map((user) => (
+          <SidePanelUser userID={user.id} key={user.id} />
+        ))}
+      </div>
+    </div>
+  );
+}

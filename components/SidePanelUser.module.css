@@ -1,0 +1,16 @@
+.row:hover {
+  background-color: #3c3f45;
+}
+.row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-size: 12px;
+  transition: color 0.1s, background-color 0.1s;
+  cursor: pointer;
+}
+.row:hover .text {
+  color: var(--light-text);
+}
