@@ -33,12 +33,14 @@ const reduxSocketMiddleware: SocketMiddleware = store => {
             socket.on('removeUser', (id) => {
                 store.dispatch({ type: 'removeUser', id });
             });
-            await setupWebRTC(socket);
         }
 
 
         if (isConnectionEstablished) {
             if (action.type === 'login') {
+                if (!globalLocalMedia) {
+                    await setupWebRTC(socket);
+                }
                 socket.emit("login", action.id, (success, data) => {
                     if (success && data) {
                         store.dispatch({ type: 'joined', id: action.id, data });
