@@ -2,15 +2,22 @@ import React, { useRef } from "react";
 import { serverStore, useHarmonySelector } from "../lib/ReduxState";
 
 export default function ServerBoard() {
-  const { channels, users } = useHarmonySelector((state) => {
-    const server = state.servers[state.activeServer];
-    return {
-      channels: server.channels.map((channelID) => state.channels[channelID]),
-      users: server.users.map((id) => state.users[id]),
-    };
-  });
-  const dragStart = useRef(null);
-  const svgRef = useRef(null);
+  const channels = useHarmonySelector(
+    (state) => {
+      const server = state.servers[state.activeServer];
+      return server.channels.map((channelID) => state.channels[channelID]);
+    },
+    (a, b) => JSON.stringify(a) === JSON.stringify(b)
+  );
+  const users = useHarmonySelector(
+    (state) => {
+      const server = state.servers[state.activeServer];
+      return server.users.map((id) => state.users[id]);
+    },
+    (a, b) => JSON.stringify(a) === JSON.stringify(b)
+  );
+  const dragStart = useRef<{ x: number; y: number } | null>(null);
+  const svgRef = useRef<SVGSVGElement>(null);
   return (
     <div style={{ position: "relative", flexGrow: 1 }}>
       <svg
@@ -55,6 +62,7 @@ export default function ServerBoard() {
               x={c.border[0][0] + 8}
               y={c.border[0][1] + 23}
               fill="var(--header-text)"
+              style={{ userSelect: "none" }}
             >
               {c.name}
             </text>

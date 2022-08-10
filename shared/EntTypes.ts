@@ -1,10 +1,10 @@
 export type User = {
     id: string;
+    name: string;
     socketId: string;
     position: { x: number, y: number; };
     dir: { x: number, y: number; };
     color: string;
-    isTalking: boolean;
     channel: string | null;
 };
 export type Channel = {
@@ -14,6 +14,7 @@ export type Channel = {
 };
 export type Server = {
     id: string;
+    name: string;
     channels: string[];
     users: string[];
     roomDrawing: {};

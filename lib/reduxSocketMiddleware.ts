@@ -40,7 +40,7 @@ const reduxSocketMiddleware: SocketMiddleware = store => {
         if (isConnectionEstablished) {
             if (action.type === 'login') {
                 socket.emit("login", action.id, (success, data) => {
-                    if (success) {
+                    if (success && data) {
                         store.dispatch({ type: 'joined', id: action.id, data });
                     } else {
                         alert("Failed to join");
@@ -69,10 +69,45 @@ const reduxSocketMiddleware: SocketMiddleware = store => {
 const ICE_SERVERS = [
     { urls: "stun:stun.l.google.com:19302" }
 ];
-const peerStreams = {};
+const peerStreams: Record<string, MediaStream> = {};
 const peers = {};
+let globalLocalMedia: MediaStream | null = null;
+const audioSettings: { context: AudioContext | null, gainNode: GainNode | null; } = { context: null, gainNode: null };
 async function setupWebRTC(socket: HarmonySocket) {
-    let local_media_stream = await navigator.mediaDevices.getUserMedia({ "audio": true });;
+    let context = new AudioContext();
+    const baseStream = await navigator.mediaDevices.getUserMedia({ "audio": true });
+    // Apply some filtering and gain
+    const node = context.createMediaStreamSource(baseStream);
+    let filter = context.createBiquadFilter();
+    filter.type = "bandpass";
+    filter.frequency.value = 167;
+    filter.Q.value = .05;
+    let filter2 = context.createBiquadFilter();
+    filter2.type = "peaking";
+    filter2.frequency.value = 167;
+    filter2.Q.value = 1;
+    filter2.gain.value = 3;
+    let filter3 = context.createDynamicsCompressor();
+
+    const gainNode = context.createGain();
+    gainNode.gain.value = 1;
+    audioSettings.gainNode = gainNode;
+    audioSettings.context = context;
+
+    const analyserNode = context.createAnalyser();
+    analyserNode.maxDecibels = 0;
+    const pcmData = new Float32Array(analyserNode.fftSize);
+    const fn = () => {
+        analyserNode.getFloatTimeDomainData(pcmData);
+        const peak = pcmData.reduce((max, v) => Math.max(max, v));
+        serverStore.dispatch({ type: "update_audio", user: '_viewer', volume: peak });
+    };
+    const interval = setInterval(fn, 100);
+
+    const dest = context.createMediaStreamDestination();
+    node.connect(filter).connect(filter2).connect(filter3).connect(gainNode).connect(analyserNode).connect(dest);
+    let local_media_stream = globalLocalMedia = dest.stream;
+
     socket.on('addPeer', function (config) {
         console.log('Signaling server said to add peer:', config);
         var peer_id = config.peer_id;
@@ -81,7 +116,7 @@ async function setupWebRTC(socket: HarmonySocket) {
             console.log("Already connected to peer ", peer_id);
             return;
         }
-        var peer_connection = new RTCPeerConnection(
+        let peer_connection = new RTCPeerConnection(
             { "iceServers": ICE_SERVERS },
         );
         peers[peer_id] = peer_connection;
@@ -131,6 +166,7 @@ async function setupWebRTC(socket: HarmonySocket) {
                     console.log("Error sending offer: ", error);
                 });
         }
+
     });
 
 
@@ -180,7 +216,7 @@ async function setupWebRTC(socket: HarmonySocket) {
     socket.on('iceCandidate', function (config) {
         var peer = peers[config.peer_id];
         var ice_candidate = config.ice_candidate;
-        peer.addIceCandidate(new RTCIceCandidate(ice_candidate));
+        peer.addIceCandidate(new RTCIceCandidate(ice_candidate as any));
     });
 
 
@@ -205,13 +241,18 @@ async function setupWebRTC(socket: HarmonySocket) {
         delete peerStreams[peer_id];
     });
 }
-
+export function getAudioSettings() {
+    return audioSettings;
+};
+export function getLocalStream() {
+    return globalLocalMedia;
+}
 export function getAudioStream(peerId: string) {
     return peerStreams[peerId];
 }
 
 function debouncer() {
-    let timeout = null;
+    let timeout: NodeJS.Timeout | null = null;
     return (fn) => {
         if (timeout != null) {
             clearTimeout(timeout);

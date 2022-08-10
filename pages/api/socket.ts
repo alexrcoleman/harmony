@@ -1,5 +1,6 @@
 import { Server } from 'socket.io';
 import Entity from '../../server/Entity';
+import { Channel, User } from '../../shared/EntTypes';
 import { ClientToServerEvents, ServerToClientEvents } from '../../shared/SocketTypes';
 
 const SocketHandler = (req, res) => {
@@ -23,11 +24,18 @@ const SocketHandler = (req, res) => {
 
                     Entity.addUser(id, socket.id);
                     const server = Entity.getServer(activeServer);
+                    if (!server) {
+                        return;
+                    }
                     server.users.push(id);
-                    const users = server.users.map(id => Entity.getUser(id));
-                    const channels = server.channels.map(id => Entity.getChannel(id));
+                    const users = server.users.map(id => Entity.getUser(id)).filter(Boolean) as User[];
+                    const channels = server.channels.map(id => Entity.getChannel(id)).filter(Boolean) as Channel[];
                     cb(true, { users, channels, server });
-                    socket.broadcast.emit('updateUser', Entity.getUser(id));
+
+                    const viewer = Entity.getUser(id);
+                    if (viewer) {
+                        socket.broadcast.emit('updateUser', viewer);
+                    }
                     socket.broadcast.emit('updateServer', server);
 
 
@@ -44,6 +52,7 @@ const SocketHandler = (req, res) => {
             socket.on('disconnect', () => {
                 if (socketUserID) {
                     const server = Entity.getServer(activeServer);
+                    if (!server) { return; }
                     server.users = server.users.filter((id) => id !== socketUserID);
                     Entity.removeUser(socketUserID);
 
@@ -56,9 +65,15 @@ const SocketHandler = (req, res) => {
             });
             socket.on('move', (loc) => {
                 const viewer = socketUserID;
-                let newChannel = null;
-                for (const channelID of Entity.getServer(activeServer).channels) {
+                const user = Entity.getUser(viewer);
+                if (!user) {
+                    return;
+                }
+                const server = Entity.getServer(activeServer);
+                let newChannel: string | null = null;
+                for (const channelID of (server?.channels ?? [])) {
                     const channel = Entity.getChannel(channelID);
+                    if (!channel) continue;
                     const cnt = [0, 0];
                     for (let i = 0; i < channel.border.length; i++) {
                         const p1 = channel.border[i], p2 = channel.border[(i + 1) % channel.border.length];
@@ -70,7 +85,6 @@ const SocketHandler = (req, res) => {
                         newChannel = channelID;
                     }
                 }
-                const user = Entity.getUser(viewer);
                 user.position = { x: loc.x, y: loc.y };
                 user.channel = newChannel;
                 io.to(activeServer).emit('updateUser', user);
@@ -78,6 +92,9 @@ const SocketHandler = (req, res) => {
             socket.on('face', (loc) => {
                 const viewer = socketUserID;
                 const user = Entity.getUser(viewer);
+                if (!user) {
+                    return;
+                }
                 let dir = { x: loc.x - user.position.x, y: loc.y - user.position.y };
                 if (dir.x == 0 && dir.y == 0) {
                     return;

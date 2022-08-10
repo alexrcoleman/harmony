@@ -7,11 +7,14 @@ export default function SidePanelChannel({
 }: {
   channel: string;
 }) {
-  const users = useHarmonySelector((state) => {
-    return state.servers[state.activeServer].users
-      .map((u) => state.users[u])
-      .filter((user) => user != null && user.channel === channelID);
-  });
+  const users = useHarmonySelector(
+    (state) => {
+      return state.servers[state.activeServer].users
+        .map((u) => state.users[u])
+        .filter((user) => user != null && user.channel === channelID);
+    },
+    (a, b) => JSON.stringify(a) === JSON.stringify(b)
+  );
   const channel = useHarmonySelector((state) => {
     return state.channels[channelID];
   });
@@ -22,6 +25,7 @@ export default function SidePanelChannel({
         color={
           users.find((u) => u.id === viewer) != null ? "header-light" : "header"
         }
+        size="h3"
         weight="semibold"
       >
         {channel.name}

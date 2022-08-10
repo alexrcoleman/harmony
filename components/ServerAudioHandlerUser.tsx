@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { getAudioStream } from "../lib/reduxSocketMiddleware";
-import { useHarmonySelector } from "../lib/ReduxState";
+import { serverStore, useHarmonySelector } from "../lib/ReduxState";
 import type { User } from "../shared/EntTypes";
 
 type Props = {
@@ -32,7 +32,11 @@ export default function ServerAudioHandlerUser({
     [audioCtx]
   );
   const gainNode = useMemo(() => audioCtx.createGain(), [audioCtx]);
-  const analyserNode = useMemo(() => audioCtx.createAnalyser(), [audioCtx]);
+  const analyserNode = useMemo(() => {
+    const node = audioCtx.createAnalyser();
+    node.maxDecibels = 0;
+    return node;
+  }, [audioCtx]);
 
   // Update panner position
   useEffect(() => {
@@ -63,19 +67,20 @@ export default function ServerAudioHandlerUser({
       track.connect(audioCtx.destination);
     }
   }, [audioId]);
-  //   const [volume,setVolume] = useState(0);
-  //   useEffect(() => {
-  //     const pcmData = new Float32Array(analyserNode.fftSize);
-  //     const onFrame = () => {
-  //         analyserNode.getFloatTimeDomainData(pcmData);
-  //         let sumSquares = 0.0;
-  //         for (const amplitude of pcmData) { sumSquares += amplitude*amplitude; }
-  //         setVolume(Math.sqrt(sumSquares / pcmData.length));
-  //         window.requestAnimationFrame(onFrame);
-  //     };
-  //     window.requestAnimationFrame(onFrame);
-  //     const interval =
-  //   }, []);
+  useEffect(() => {
+    const pcmData = new Float32Array(analyserNode.fftSize);
+    const fn = () => {
+      analyserNode.getFloatTimeDomainData(pcmData);
+      const peak = pcmData.reduce((max, v) => Math.max(max, v));
+      serverStore.dispatch({
+        type: "update_audio",
+        user: user.id,
+        volume: peak,
+      });
+    };
+    const interval = setInterval(fn, 100);
+    return () => clearInterval(interval);
+  }, []);
 
   return (
     // <div />

@@ -3,13 +3,26 @@ import "../styles/global.css";
 import { serverStore, useHarmonySelector } from "../lib/ReduxState";
 import { useEffect } from "react";
 import HText from "../components/HText";
+import Head from "next/head";
+import { ThemeProvider } from "@mui/material";
+import theme from "../components/theme";
 
 export default function App({ Component, pageProps }) {
   return (
     <Provider store={serverStore}>
-      <Wrapper>
-        <Component {...pageProps} />
-      </Wrapper>
+      <ThemeProvider theme={theme}>
+        <Head>
+          <link href="/fonts/Uni Sans Heavy.otf" rel="stylesheet" />
+          <link href="/fonts/Uni Sans Bold.otf" rel="stylesheet" />
+          <link href="/fonts/Uni Sans SemiBold.otf" rel="stylesheet" />
+          <link href="/fonts/Uni Sans Regular.otf" rel="stylesheet" />
+          <link href="/fonts/Uni Sans Thin.otf" rel="stylesheet" />
+          <title>Harmony</title>
+        </Head>
+        <Wrapper>
+          <Component {...pageProps} />
+        </Wrapper>
+      </ThemeProvider>
     </Provider>
   );
 }

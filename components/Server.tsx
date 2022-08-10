@@ -16,10 +16,10 @@ export default function Server() {
           display: "flex",
           flexDirection: "row",
           alignItems: "stretch",
-          height: "100vh",
+          height: "calc(100vh - 10px)",
           justifyContent: "stretch",
           backgroundColor: "var(--light-bg)",
-          borderRadius: 8,
+          borderRadius: "8px 0px 0px 0px",
           overflow: "hidden",
         }}
       >

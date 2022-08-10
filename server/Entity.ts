@@ -28,6 +28,7 @@ const state: BackendState = {
     servers: {
         test: {
             id: 'test',
+            name: 'CHAD/ROMANIA',
             channels: ['channel1', 'channel2', 'channel3'],
             roomDrawing: {},
             users: [],
@@ -48,7 +49,7 @@ export default abstract class Entity {
         return state.channels[id] ?? null;
     }
     static addUser(id: string, socketId: string): void {
-        state.users[id] = { id, socketId, channel: null, color: `rgb(${rand()}, ${rand()}, ${rand()})`, dir: { x: 0, y: 1 }, isTalking: false, position: { x: 50, y: 50 } };
+        state.users[id] = { id, name: id, socketId, channel: null, color: `rgb(${rand()}, ${rand()}, ${rand()})`, dir: { x: 0, y: 1 }, position: { x: 50, y: 50 } };
     }
     static removeUser(id: string): void {
         delete state.users[id];
@@ -57,14 +58,3 @@ export default abstract class Entity {
 function rand() {
     return Math.floor(Math.random() * 256);
 }
-// const dummyData = {
-//     activeServer: 'server1',
-//     viewer: 'alexrcoleman',
-//     channels: 
-// users: {
-//     alexrcoleman: { id: "alexrcoleman", position: { x: 630, y: 70; }, dir: { x: 1, y: 0; }, color: 'red', isTalking: false, channel: 'channel2'; },
-//     tvh: { id: "tvh", position: { x: 650, y: 90; }, dir: { x: 0, y: 1; }, color: 'pink', isTalking: true, channel: 'channel2'; },
-//     Amon: { id: 'Amon', position: { x: 130, y: 80; }, dir: { x: 0.242536, y: 0.970143; }, color: 'purple', isTalking: true, channel: 'channel1'; },
-//     jport: { id: 'jport', position: { x: 170, y: 85; }, dir: { x: -0.242536, y: 0.970143; }, color: 'blue', isTalking: true, channel: 'channel1'; },
-// }
-// };

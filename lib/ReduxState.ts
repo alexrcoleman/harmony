@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { shallowEqual, useSelector } from 'react-redux';
 import produce from "immer";
 import type { EqualityFn } from 'react-redux';
@@ -14,6 +14,8 @@ export type HarmonyState = {
     channels: Record<string, Channel>;
     servers: Record<string, Server>;
     audioIds: Record<string, string>;
+    settings: { isSpatialAudioEnabled: boolean; };
+    clientAudioData: Record<string, { isTalking: boolean; volume: number; }>;
 };
 export type HarmonyAction =
     | {
@@ -35,10 +37,21 @@ export type HarmonyAction =
 
     | { type: 'login'; id: string; }
     | { type: 'audio_connect'; peer_id: string; }
+    | { type: 'set_spatial_audio', enabled: boolean; }
+    | { type: 'update_audio', volume: number; user: string; }
     | { type: 'logout'; };
 export const serverStore = configureStore<HarmonyState, HarmonyAction, [SocketMiddleware]>({
     reducer: (state, action) => {
-        console.log('Action: ', action);
+        if (!state) {
+            throw new Error("No state");
+        }
+        // console.log('Action: ', action);
+        if (action.type === 'update_audio') {
+            return produce(state, state => {
+                state.clientAudioData[action.user] = { isTalking: action.volume > 0.1, volume: action.volume };
+                return state;
+            });
+        }
         if (action.type === 'move') {
             return produce(state, state => {
                 const viewer = state.viewer;
@@ -116,6 +129,12 @@ export const serverStore = configureStore<HarmonyState, HarmonyAction, [SocketMi
                 return state;
             });
         }
+        if (action.type === 'set_spatial_audio') {
+            return produce(state, state => {
+                state.settings.isSpatialAudioEnabled = action.enabled;
+                return state;
+            });
+        }
         return state;
     },
     preloadedState: {
@@ -123,12 +142,14 @@ export const serverStore = configureStore<HarmonyState, HarmonyAction, [SocketMi
         isConnected: false,
         activeServer: '',
         viewer: '',
-        servers: {
-        },
-        channels: {
-        },
+        servers: {},
+        channels: {},
         users: {},
         audioIds: {},
+        settings: {
+            isSpatialAudioEnabled: true
+        },
+        clientAudioData: {},
     },
     middleware: [reduxSocketMiddleware],
 });
