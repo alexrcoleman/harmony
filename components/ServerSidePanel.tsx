@@ -35,7 +35,7 @@ export default function ServerSidePanel() {
         style={{
           display: "flex",
           flexDirection: "column",
-          gap: "6px",
+          gap: "2px",
           padding: "20px",
         }}
         flexGrow={1}

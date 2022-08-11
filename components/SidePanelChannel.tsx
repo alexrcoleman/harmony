@@ -1,6 +1,8 @@
-import { useHarmonySelector } from "../lib/ReduxState";
+import { serverStore, useHarmonySelector } from "../lib/ReduxState";
 import HText from "./HText";
 import SidePanelUser from "./SidePanelUser";
+import styles from "./SidePanelChannel.module.css";
+import { useMemo } from "react";
 
 export default function SidePanelChannel({
   channel: channelID,
@@ -21,19 +23,52 @@ export default function SidePanelChannel({
     }
     return state.channels[channelID];
   });
+
+  let { cx, cy } = useMemo(() => {
+    let cx = 0,
+      cy = 0;
+    for (let b of channel?.border ?? []) {
+      cx += b[0];
+      cy += b[1];
+    }
+    cx /= (channel?.border ?? []).length;
+    cy /= (channel?.border ?? []).length;
+    return { cx: isNaN(cx) ? 0 : cx, cy: isNaN(cy) ? 0 : cy };
+  }, [channel]);
   const viewer = useHarmonySelector((state) => state.viewer);
   return (
     <div style={{ fontSize: 14 }}>
-      <HText
-        color={
-          users.find((u) => u.id === viewer) != null ? "header-light" : "header"
-        }
-        size="h3"
-        weight="semibold"
+      <div
+        className={styles.row}
+        style={{ cursor: "pointer" }}
+        onClick={() => {
+          const x = (isNaN(cx) ? 0 : cx) + Math.floor(Math.random() * 40 - 20);
+          const y = (isNaN(cy) ? 0 : cy) + Math.floor(Math.random() * 40 - 20);
+          serverStore.dispatch({ type: "move", x, y });
+          serverStore.dispatch({ type: "face", x: cx, y: cy });
+        }}
       >
-        {channel === null ? "dead or what?" : channel.name}
-      </HText>
-      <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
+        <HText
+          color={
+            users.find((u) => u.id === viewer) != null
+              ? "header-light"
+              : "header"
+          }
+          size="h3"
+          weight="semibold"
+        >
+          {channel === null ? "dead or what?" : channel.name}
+        </HText>
+      </div>
+      <div
+        style={{
+          display: "flex",
+          flexDirection: "column",
+          gap: "2px",
+          paddingLeft: "12px",
+          paddingTop: "2px",
+        }}
+      >
         {users.map((user) => (
           <SidePanelUser userID={user.id} key={user.id} />
         ))}

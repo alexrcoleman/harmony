@@ -127,7 +127,15 @@ export const serverStore = configureStore<HarmonyState, HarmonyAction, [SocketMi
         }
         if (action.type === 'user') {
             return produce(state, state => {
-                state.users[action.user.id] = action.user;
+                if (action.user.id === state.viewer) {
+                    console.log("Ignore returned");
+                    const oldUser = state.users[action.user.id];
+                    state.users[action.user.id] = action.user;
+                    state.users[action.user.id].position = oldUser.position;
+                    state.users[action.user.id].dir = oldUser.dir;
+                } else {
+                    state.users[action.user.id] = action.user;
+                }
                 return state;
             });
         }

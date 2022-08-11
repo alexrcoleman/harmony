@@ -1,4 +1,4 @@
-import React, { useRef } from "react";
+import React, { useEffect, useRef, useState } from "react";
 import { serverStore, useHarmonySelector } from "../lib/ReduxState";
 
 export default function ServerBoard() {
@@ -18,11 +18,50 @@ export default function ServerBoard() {
   );
   const dragStart = useRef<{ x: number; y: number } | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
+
+  const [isLeft, setLeft] = useState(false);
+  const [isRight, setRight] = useState(false);
+  const [isDown, setDown] = useState(false);
+  const [isUp, setUp] = useState(false);
+  useEffect(() => {
+    if (!isLeft && !isRight && !isDown && !isUp) {
+      return;
+    }
+
+    const timeout = setInterval(() => {
+      const st = serverStore.getState();
+      const speed = 5;
+      if (isUp || isDown) {
+        const scale = isUp ? speed : -speed;
+        const u = st.users[st.viewer ?? ""];
+        const p = u.position;
+        const d = u.dir;
+        serverStore.dispatch({
+          type: "move",
+          x: p.x + d.x * scale,
+          y: p.y + d.y * scale,
+        });
+      }
+      if (isLeft || isRight) {
+        const scale = isRight ? 2 : -2;
+        const u = st.users[st.viewer ?? ""];
+        const p = u.position;
+        const d = u.dir;
+        serverStore.dispatch({
+          type: "face",
+          x: p.x + (d.x * 5 - d.y * scale) * 10,
+          y: p.y + (d.y * 5 + d.x * scale) * 10,
+        });
+      }
+    }, 50);
+    return () => clearTimeout(timeout);
+  }, [isLeft, isRight, isDown, isUp]);
   return (
     <div style={{ position: "relative", flexGrow: 1 }}>
       <svg
         width="100%"
         height="100%"
+        tabIndex={0}
         onMouseDown={(e) => {
           const rect = (svgRef.current as SVGElement).getBoundingClientRect();
           const x = e.clientX - rect.left; //x position within the element.
@@ -42,6 +81,34 @@ export default function ServerBoard() {
         onMouseUp={(e) => {
           e.preventDefault();
           dragStart.current = null;
+        }}
+        onKeyDown={(e) => {
+          if (e.code === "ArrowRight") {
+            setRight(true);
+          }
+          if (e.code === "ArrowUp") {
+            setUp(true);
+          }
+          if (e.code === "ArrowDown") {
+            setDown(true);
+          }
+          if (e.code === "ArrowLeft") {
+            setLeft(true);
+          }
+        }}
+        onKeyUp={(e) => {
+          if (e.code === "ArrowRight") {
+            setRight(false);
+          }
+          if (e.code === "ArrowUp") {
+            setUp(false);
+          }
+          if (e.code === "ArrowDown") {
+            setDown(false);
+          }
+          if (e.code === "ArrowLeft") {
+            setLeft(false);
+          }
         }}
         ref={svgRef}
       >
