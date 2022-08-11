@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
 import { serverStore, useHarmonySelector } from "../lib/ReduxState";
-
+import styles from "./ServerBoard.module.css";
 export default function ServerBoard() {
   const channels = useHarmonySelector(
     (state) => {
@@ -15,6 +15,9 @@ export default function ServerBoard() {
       return server.users.map((id) => state.users[id]);
     },
     (a, b) => JSON.stringify(a) === JSON.stringify(b)
+  );
+  const viewerChannel = useHarmonySelector(
+    (st) => st.users[st.viewer ?? ""]?.channel
   );
   const dragStart = useRef<{ x: number; y: number } | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
@@ -59,6 +62,7 @@ export default function ServerBoard() {
   return (
     <div style={{ position: "relative", flexGrow: 1 }}>
       <svg
+        className={styles.board}
         width="100%"
         height="100%"
         tabIndex={0}
@@ -123,12 +127,16 @@ export default function ServerBoard() {
                 c.border[0][1]
               }
               fill="var(--dark-bg)"
-              stroke="#fff8"
+              stroke={c.id === viewerChannel ? "#ffff" : "#fff8"}
             />
             <text
               x={c.border[0][0] + 8}
               y={c.border[0][1] + 23}
-              fill="var(--header-text)"
+              fill={
+                c.id === viewerChannel
+                  ? "var(--header-text-light)"
+                  : "var(--header-text)"
+              }
               style={{ userSelect: "none" }}
             >
               {c.name}
