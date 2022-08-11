@@ -17,4 +17,5 @@ export type ClientToServerEvents = {
     face: (loc: { x: number, y: number; }) => void;
     relaySessionDescription: (data: { peer_id: string, session_description: RTCSessionDescriptionInit; }) => void;
     relayICECandidate: (data: { peer_id: string, ice_candidate: unknown; }) => void;
+    set_muted: (muted: boolean) => void;
 }; 

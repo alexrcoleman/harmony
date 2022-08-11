@@ -38,10 +38,11 @@ export default function ServerAudioHandler() {
       return;
     }
     const listener = audioCtx.listener;
-    listener.positionX.value = viewer.position.x;
-    listener.positionY.value = viewer.position.y;
-    listener.forwardX.value = viewer.dir.x;
-    listener.forwardY.value = viewer.dir.y;
+    const time = audioCtx.currentTime + 0.5;
+    listener.positionX.linearRampToValueAtTime(viewer.position.x, time);
+    listener.positionY.linearRampToValueAtTime(viewer.position.y, time);
+    listener.forwardX.linearRampToValueAtTime(viewer.dir.x, time);
+    listener.forwardY.linearRampToValueAtTime(viewer.dir.y, time);
   }, [audioCtx, viewer]);
 
   if (!audioCtx) {

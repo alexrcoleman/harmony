@@ -58,7 +58,7 @@ export default function SettingsDialog() {
                       );
                     }
                   }}
-                  min={1}
+                  min={0.1}
                   max={300}
                   step={1}
                   valueLabelDisplay="auto"
@@ -68,7 +68,7 @@ export default function SettingsDialog() {
               <Box flexGrow={1}>
                 <HText color="header-light">Output Volume</HText>
                 <Slider
-                  value={volume}
+                  value={100}
                   onChange={(e, value) => {
                     if (gainNode) {
                       // const percent = Array.isArray(value) ? value[0] : value;
@@ -81,9 +81,10 @@ export default function SettingsDialog() {
                       // );
                     }
                   }}
-                  min={1}
+                  min={0}
                   max={300}
                   step={1}
+                  disabled={true}
                   valueLabelDisplay="auto"
                   valueLabelFormat={(value) => value + "%"}
                 />

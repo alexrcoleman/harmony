@@ -58,6 +58,9 @@ const reduxSocketMiddleware: SocketMiddleware = store => {
             if (action.type === 'logout') {
                 socket.emit('logout');
             }
+            if (action.type === 'set_muted') {
+                socket.emit('set_muted', action.isMuted);
+            }
         }
 
         // if (chatActions.submitMessage.match(action) && isConnectionEstablished) {
@@ -77,9 +80,14 @@ let globalLocalMedia: MediaStream | null = null;
 const audioSettings: { context: AudioContext | null, gainNode: GainNode | null; } = { context: null, gainNode: null };
 async function setupWebRTC(socket: HarmonySocket) {
     let context = new AudioContext();
-    const baseStream = await navigator.mediaDevices.getUserMedia({ "audio": true });
+    const baseStream = await navigator.mediaDevices.getUserMedia({ "audio": true, });
+    baseStream.getAudioTracks()[0].applyConstraints({ noiseSuppression: true });
     // Apply some filtering and gain
     const node = context.createMediaStreamSource(baseStream);
+
+    // const node = context.createOscillator();
+    // node.frequency.value = 200;
+    // node.start();
     let filter = context.createBiquadFilter();
     filter.type = "bandpass";
     filter.frequency.value = 167;
@@ -98,17 +106,17 @@ async function setupWebRTC(socket: HarmonySocket) {
 
     const analyserNode = context.createAnalyser();
     analyserNode.maxDecibels = 0;
-    const pcmData = new Float32Array(analyserNode.fftSize);
-    const fn = () => {
-        analyserNode.getFloatTimeDomainData(pcmData);
-        const peak = pcmData.reduce((max, v) => Math.max(max, v));
-        serverStore.dispatch({ type: "update_audio", user: '_viewer', volume: peak });
-    };
-    const interval = setInterval(fn, 100);
 
     const dest = context.createMediaStreamDestination();
     node.connect(filter).connect(filter2).connect(filter3).connect(gainNode).connect(analyserNode).connect(dest);
     let local_media_stream = globalLocalMedia = dest.stream;
+    const pcmData = new Float32Array(analyserNode.fftSize);
+    const fn = () => {
+        analyserNode.getFloatTimeDomainData(pcmData);
+        const peak = pcmData.reduce((max, v) => Math.max(max, v));
+        serverStore.dispatch({ type: "update_audio", user: '_viewer', volume: dest.stream.getAudioTracks()[0].enabled ? peak : 0 });
+    };
+    const interval = setInterval(fn, 100);
 
     socket.on('addPeer', function (config) {
         console.log('Signaling server said to add peer:', config);

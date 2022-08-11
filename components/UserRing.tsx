@@ -6,8 +6,8 @@ export default function UserRing({ color, isTalking }) {
         borderRadius: 100,
         width: 16,
         height: 16,
-        opacity: 0.3,
-        border: isTalking ? "1px solid green" : "",
+        opacity: isTalking ? 1 : 0.8,
+        border: isTalking ? "2px solid #3ba55d" : undefined,
       }}
     />
   );

@@ -6,6 +6,7 @@ export type User = {
     dir: { x: number, y: number; };
     color: string;
     channel: string | null;
+    isMuted: boolean;
 };
 export type Channel = {
     id: string;

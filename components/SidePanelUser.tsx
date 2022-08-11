@@ -1,4 +1,7 @@
-import { useHarmonySelector } from "../lib/ReduxState";
+import { MicOff } from "@mui/icons-material";
+import { Box, Menu, Slider } from "@mui/material";
+import { useState } from "react";
+import { serverStore, useHarmonySelector } from "../lib/ReduxState";
 import HText from "./HText";
 import styles from "./SidePanelUser.module.css";
 import UserRing from "./UserRing";
@@ -19,17 +22,72 @@ export default function SidePanelUser({ userID }: Props) {
       Math.round((state.clientAudioData[audioId]?.volume ?? 0) * 200) + "%"
     );
   });
+  const adjustment = useHarmonySelector((state) => {
+    return state.settings.gainAdjustments[audioId] ?? 100;
+  });
+  const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [menuPos, setMenuPos] = useState({ left: 0, top: 0 });
   return (
-    <div className={styles.row}>
-      <UserRing color={user.color} isTalking={isTalking} />
-      <HText
-        color={isTalking ? "white" : "primary"}
-        weight="regular"
-        size="body1"
+    <>
+      <div
+        className={styles.row}
+        onContextMenu={(e) => {
+          e.preventDefault();
+          if (!isViewer) {
+            setMenuPos({ left: e.clientX, top: e.clientY });
+            setIsMenuOpen(true);
+          }
+        }}
+        onClick={(e) => {
+          if (!isViewer) {
+            setMenuPos({ left: e.clientX, top: e.clientY });
+            setIsMenuOpen(true);
+          }
+        }}
       >
-        <span className={styles.text}>{user.id}</span>
-      </HText>
-      {String(volume)}
-    </div>
+        <UserRing color={user.color} isTalking={isTalking} />
+        <Box flexGrow={1}>
+          <HText
+            color={isTalking ? "white" : "primary"}
+            weight="regular"
+            size="body1"
+          >
+            <span className={styles.text}>{user.id}</span>
+          </HText>
+        </Box>
+        {user.isMuted ? <MicOff fontSize="small" /> : String(volume)}
+      </div>
+
+      <Menu
+        open={isMenuOpen}
+        onClose={() => setIsMenuOpen(false)}
+        anchorReference="anchorPosition"
+        anchorPosition={{ left: menuPos.left, top: menuPos.top }}
+        transformOrigin={{
+          vertical: "top",
+          horizontal: "left",
+        }}
+      >
+        <Box padding="20px" minWidth="200px">
+          <HText color="primary" size="body1">
+            User Volume
+          </HText>
+          <Slider
+            onChange={(e, v) =>
+              serverStore.dispatch({
+                type: "update_user_volume",
+                user: userID,
+                volume: Array.isArray(v) ? v[0] : v,
+              })
+            }
+            min={0}
+            max={300}
+            value={adjustment}
+            valueLabelDisplay="auto"
+            valueLabelFormat={(v) => v + "%"}
+          />
+        </Box>
+      </Menu>
+    </>
   );
 }

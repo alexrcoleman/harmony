@@ -23,6 +23,11 @@ const state: BackendState = {
             id: 'channel3',
             name: 'sidebar',
             border: [[1000, 80], [1050, 80], [1050, 200], [1000, 200]],
+        },
+        'channel4': {
+            id: 'channel4',
+            name: 'valorant',
+            border: [[90 + 300, 20 + 300], [390 + 300, 20 + 300], [390 + 300, 320 + 300], [90 + 300, 320 + 300]],
         }
     },
     servers: {

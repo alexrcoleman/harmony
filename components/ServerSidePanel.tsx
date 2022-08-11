@@ -44,6 +44,7 @@ export default function ServerSidePanel() {
         {channels.map((c) => (
           <SidePanelChannel channel={c} key={c} />
         ))}
+        <SidePanelChannel channel={null} />
       </Box>
       <ConnectionBox />
       <Box>

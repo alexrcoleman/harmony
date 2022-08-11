@@ -1,5 +1,5 @@
-import { combineReducers, configureStore } from '@reduxjs/toolkit';
-import { shallowEqual, useSelector } from 'react-redux';
+import { configureStore } from '@reduxjs/toolkit';
+import { useSelector } from 'react-redux';
 import produce from "immer";
 import type { EqualityFn } from 'react-redux';
 import { Channel, Server, User } from '../shared/EntTypes';
@@ -14,7 +14,7 @@ export type HarmonyState = {
     channels: Record<string, Channel>;
     servers: Record<string, Server>;
     audioIds: Record<string, string>;
-    settings: { isSpatialAudioEnabled: boolean; };
+    settings: { isSpatialAudioEnabled: boolean; gainAdjustments: Record<string, number>; isMuted: boolean; };
     clientAudioData: Record<string, { isTalking: boolean; volume: number; }>;
 };
 export type HarmonyAction =
@@ -39,6 +39,8 @@ export type HarmonyAction =
     | { type: 'audio_connect'; peer_id: string; }
     | { type: 'set_spatial_audio', enabled: boolean; }
     | { type: 'update_audio', volume: number; user: string; }
+    | { type: 'set_muted'; isMuted: boolean; }
+    | { type: 'update_user_volume'; user: string; volume: number; }
     | { type: 'logout'; };
 export const serverStore = configureStore<HarmonyState, HarmonyAction, [SocketMiddleware]>({
     reducer: (state, action) => {
@@ -49,6 +51,18 @@ export const serverStore = configureStore<HarmonyState, HarmonyAction, [SocketMi
         if (action.type === 'update_audio') {
             return produce(state, state => {
                 state.clientAudioData[action.user] = { isTalking: action.volume > 0.1, volume: action.volume };
+                return state;
+            });
+        }
+        if (action.type === 'update_user_volume') {
+            return produce(state, state => {
+                state.settings.gainAdjustments[action.user] = action.volume;
+                return state;
+            });
+        }
+        if (action.type === 'set_muted') {
+            return produce(state, state => {
+                state.settings.isMuted = action.isMuted;
                 return state;
             });
         }
@@ -147,7 +161,9 @@ export const serverStore = configureStore<HarmonyState, HarmonyAction, [SocketMi
         users: {},
         audioIds: {},
         settings: {
-            isSpatialAudioEnabled: true
+            isSpatialAudioEnabled: true,
+            gainAdjustments: {},
+            isMuted: false,
         },
         clientAudioData: {},
     },

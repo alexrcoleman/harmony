@@ -117,6 +117,15 @@ const SocketHandler = (req, res) => {
 
                 io.to(peer_id).emit('sessionDescription', { 'peer_id': socket.id, 'session_description': session_description });
             });
+            socket.on('set_muted', (muted) => {
+                const viewer = socketUserID;
+                const user = Entity.getUser(viewer);
+                if (!user) {
+                    return;
+                }
+                user.isMuted = muted;
+                io.to(activeServer).emit('updateUser', user);
+            });
         });
         res.socket.server.io = io;
     };

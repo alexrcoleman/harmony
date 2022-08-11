@@ -15,6 +15,9 @@ export default function ServerAudioHandlerUser({
 }: Props) {
   const peerId = useHarmonySelector((st) => user.socketId);
   const audioId = useHarmonySelector((st) => st.audioIds[user.socketId]);
+  const adjustment = useHarmonySelector((state) => {
+    return state.settings.gainAdjustments[user.id] ?? 100;
+  });
   const panner = useMemo(
     () =>
       new PannerNode(audioCtx, {
@@ -23,11 +26,11 @@ export default function ServerAudioHandlerUser({
         positionZ: 0,
         orientationZ: 0,
         refDistance: 1,
-        maxDistance: 100000,
+        maxDistance: 10000,
         rolloffFactor: 0.4,
-        coneInnerAngle: 30,
-        coneOuterAngle: 90,
-        coneOuterGain: 0.5,
+        coneInnerAngle: 45,
+        coneOuterAngle: 180,
+        coneOuterGain: 0.3,
       }),
     [audioCtx]
   );
@@ -40,15 +43,23 @@ export default function ServerAudioHandlerUser({
 
   // Update panner position
   useEffect(() => {
-    panner.positionX.value = user.position.x;
-    panner.positionY.value = user.position.y;
-    panner.orientationX.value = user.dir.x;
-    panner.orientationY.value = user.dir.y;
+    const time = audioCtx.currentTime + 0.5;
+    panner.positionX.linearRampToValueAtTime(user.position.x, time);
+    panner.positionY.linearRampToValueAtTime(user.position.y, time);
+    panner.orientationX.linearRampToValueAtTime(user.dir.x, time);
+    panner.orientationY.linearRampToValueAtTime(user.dir.y, time);
   }, [user]);
   // Update gain
   useEffect(() => {
-    gainNode.gain.value = isInViewerChannel ? 1 : 0.5;
-  }, [isInViewerChannel]);
+    const gain = Math.max(
+      0.0001,
+      (adjustment / 100) * (isInViewerChannel ? 1 : 0.2)
+    );
+    gainNode.gain.exponentialRampToValueAtTime(
+      gain,
+      audioCtx.currentTime + 0.5
+    );
+  }, [isInViewerChannel, adjustment]);
 
   // Connect to audio element
   const audioElementRef = useRef<null | HTMLAudioElement>(null);
@@ -65,6 +76,11 @@ export default function ServerAudioHandlerUser({
       track = track.connect(gainNode);
       track = track.connect(analyserNode);
       track.connect(audioCtx.destination);
+      return () => {
+        panner.disconnect();
+        gainNode.disconnect();
+        analyserNode.disconnect();
+      };
     }
   }, [audioId]);
   useEffect(() => {

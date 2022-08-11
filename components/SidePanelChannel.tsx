@@ -5,7 +5,7 @@ import SidePanelUser from "./SidePanelUser";
 export default function SidePanelChannel({
   channel: channelID,
 }: {
-  channel: string;
+  channel: string | null;
 }) {
   const users = useHarmonySelector(
     (state) => {
@@ -16,6 +16,9 @@ export default function SidePanelChannel({
     (a, b) => JSON.stringify(a) === JSON.stringify(b)
   );
   const channel = useHarmonySelector((state) => {
+    if (channelID == null) {
+      return null;
+    }
     return state.channels[channelID];
   });
   const viewer = useHarmonySelector((state) => state.viewer);
@@ -28,7 +31,7 @@ export default function SidePanelChannel({
         size="h3"
         weight="semibold"
       >
-        {channel.name}
+        {channel === null ? "dead or what?" : channel.name}
       </HText>
       <div style={{ display: "flex", flexDirection: "column", gap: "2px" }}>
         {users.map((user) => (

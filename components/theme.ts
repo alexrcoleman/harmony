@@ -1,7 +1,12 @@
 import { createTheme } from "@mui/material";
 
 export default createTheme({
+
     palette: {
+        mode: 'dark',
+        action: {
+            hover: '#202225',
+        },
         primary: { main: '#5865f2', contrastText: '#d2ddde' },
         secondary: { main: '#b9bbbe' },
         background: {
@@ -20,6 +25,27 @@ export default createTheme({
                     color: '#cbcccd',
                     backgroundColor: '#202225',
                     borderRadius: '4px',
+                    '&:hover': {
+                        backgroundColor: '#182022',
+                    },
+                    '&.Mui-focused': {
+                        backgroundColor: '#182022',
+                    }
+                },
+            },
+        },
+        MuiSvgIcon: {
+            styleOverrides: {
+                fontSizeSmall: {
+                    fontSize: '18px',
+                }
+            }
+        },
+        MuiPopover: {
+            styleOverrides: {
+                paper: {
+                    backgroundColor: '#18191c',
+                    backgroundImage: 'none',
                 },
             },
         },
