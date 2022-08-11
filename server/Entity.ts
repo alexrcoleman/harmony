@@ -34,7 +34,7 @@ const state: BackendState = {
         test: {
             id: 'test',
             name: 'CHAD/ROMANIA',
-            channels: ['channel1', 'channel2', 'channel3'],
+            channels: ['channel1', 'channel2', 'channel3', 'channel4'],
             roomDrawing: {},
             users: [],
         },
