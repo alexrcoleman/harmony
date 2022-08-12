@@ -1,7 +1,11 @@
 import { MicOff } from "@mui/icons-material";
 import { Box, Menu, Slider } from "@mui/material";
 import { useState } from "react";
-import { serverStore, useHarmonySelector } from "../lib/ReduxState";
+import {
+  serverStore,
+  useHarmonySelector,
+  userSelector,
+} from "../lib/ReduxState";
 import HText from "./HText";
 import styles from "./SidePanelUser.module.css";
 import UserRing from "./UserRing";
@@ -9,11 +13,9 @@ type Props = {
   userID: string;
 };
 export default function SidePanelUser({ userID }: Props) {
-  const isViewer = useHarmonySelector((state) => state.viewer === userID);
+  const isViewer = useHarmonySelector((state) => state.users.viewer === userID);
   const audioId = isViewer ? "_viewer" : userID;
-  const user = useHarmonySelector((state) => {
-    return state.users[userID];
-  });
+  const user = useHarmonySelector((state) => userSelector(state, userID));
   const isTalking = useHarmonySelector((state) => {
     return state.clientAudioData[audioId]?.isTalking ?? false;
   });
@@ -27,6 +29,9 @@ export default function SidePanelUser({ userID }: Props) {
   });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ left: 0, top: 0 });
+  if (!user) {
+    return null;
+  }
   return (
     <>
       <div

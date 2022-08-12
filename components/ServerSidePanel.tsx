@@ -1,5 +1,5 @@
 import Box from "@mui/material/Box";
-import { useHarmonySelector } from "../lib/ReduxState";
+import { serverSelector, useHarmonySelector } from "../lib/ReduxState";
 import { useRouter } from "next/router";
 import HText from "./HText";
 import SidePanelChannel from "./SidePanelChannel";
@@ -11,10 +11,10 @@ import ConnectionBox from "./ConnectionBox";
 export default function ServerSidePanel() {
   const router = useRouter();
   const serverName = useHarmonySelector((state) => {
-    return state.servers[state.activeServer].name;
+    return serverSelector(state)?.name;
   });
   const channels = useHarmonySelector((state) => {
-    return state.servers[state.activeServer].channels;
+    return serverSelector(state)?.channels;
   });
   return (
     <div
@@ -41,7 +41,7 @@ export default function ServerSidePanel() {
         flexGrow={1}
         overflow="auto"
       >
-        {channels.map((c) => (
+        {(channels ?? []).map((c) => (
           <SidePanelChannel channel={c} key={c} />
         ))}
         <SidePanelChannel channel={null} />

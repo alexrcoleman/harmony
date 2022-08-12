@@ -1,4 +1,4 @@
-import { configureStore } from '@reduxjs/toolkit';
+import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import { useSelector } from 'react-redux';
 import produce from "immer";
 import type { EqualityFn } from 'react-redux';
@@ -8,33 +8,22 @@ import reduxSocketMiddleware, { SocketMiddleware } from './reduxSocketMiddleware
 export type HarmonyState = {
     isConnected: boolean;
     isJoined: boolean;
-    activeServer: string;
-    viewer: string | null;
-    users: Record<string, User>;
+    users: { viewer: string | null; entities: Record<string, User>; };
     channels: Record<string, Channel>;
-    servers: Record<string, Server>;
+    servers: { activeServer: string, entities: Record<string, Server>; };
     audioIds: Record<string, string>;
     settings: { isSpatialAudioEnabled: boolean; gainAdjustments: Record<string, number>; isMuted: boolean; };
     clientAudioData: Record<string, { isTalking: boolean; volume: number; }>;
 };
 export type HarmonyAction =
-    | {
-        type: 'move';
-        x: number;
-        y: number;
-    }
-    | {
-        type: 'face';
-        x: number;
-        y: number;
-    }
+    | { type: 'move'; x: number; y: number; }
+    | { type: 'face'; x: number; y: number; }
     | { type: 'connect'; }
     | { type: 'connected'; }
     | { type: 'joined'; id: string; data: { users: User[], server: Server, channels: Channel[]; }; }
     | { type: 'user'; user: User; }
     | { type: 'server'; server: Server; }
     | { type: 'removeUser'; id: string; }
-
     | { type: 'login'; id: string; }
     | { type: 'audio_connect'; peer_id: string; }
     | { type: 'set_spatial_audio', enabled: boolean; }
@@ -42,35 +31,146 @@ export type HarmonyAction =
     | { type: 'set_muted'; isMuted: boolean; }
     | { type: 'update_user_volume'; user: string; volume: number; }
     | { type: 'logout'; };
-export const serverStore = configureStore<HarmonyState, HarmonyAction, [SocketMiddleware]>({
-    reducer: (state, action) => {
-        if (!state) {
-            throw new Error("No state");
+
+const childReducer = combineReducers<HarmonyState, HarmonyAction>({
+    isConnected: (state = false, action: HarmonyAction) => {
+        if (action.type === 'connected') {
+            return true;
         }
-        // console.log('Action: ', action);
+        return state;
+    },
+    users: (state = { viewer: null, entities: {} }, action) => {
+        if (action.type === 'removeUser') {
+            return produce(state, state => {
+                delete state.entities[action.id];
+                return state;
+            });
+        }
+        if (action.type === 'user') {
+            return produce(state, state => {
+                state.entities[action.user.id] = action.user;
+                return state;
+            });
+        }
+        if (action.type === 'joined') {
+            return produce(state, state => {
+                state.viewer = action.id;
+                action.data.users.forEach((user) => {
+                    state.entities[user.id] = user;
+                });
+            });
+        }
+
+        if (action.type === 'face') {
+            return produce(state, state => {
+                const viewer = state.viewer;
+                if (!viewer) {
+                    return state;
+                }
+                const user = state.entities[viewer];
+                let dir = { x: action.x - user.position.x, y: action.y - user.position.y };
+                if (dir.x == 0 && dir.y == 0) {
+                    return state;
+                }
+                const dot = Math.sqrt(dir.x * dir.x + dir.y * dir.y);
+                state.entities[viewer].dir = { x: dir.x / dot, y: dir.y / dot };
+                return state;
+            });
+        }
+        return state;
+    },
+    audioIds: (state = {}, action) => {
+        if (action.type === 'audio_connect') {
+            return produce(state, state => {
+                state[action.peer_id] = String(Math.random());
+                return state;
+            });
+        }
+        return state;
+    },
+    channels: (state = {}, action) => {
+        if (action.type === 'joined') {
+            return produce(state, state => {
+                action.data.channels.forEach((c) => {
+                    state[c.id] = c;
+                });
+            });
+        }
+        return state;
+    },
+    clientAudioData: (state = {}, action) => {
         if (action.type === 'update_audio') {
             return produce(state, state => {
-                state.clientAudioData[action.user] = { isTalking: action.volume > 0.1, volume: action.volume };
+                state[action.user] = { isTalking: action.volume > 0.1, volume: action.volume };
+                return state;
+            });
+        }
+        return state;
+    },
+    isJoined: (state = false, action) => {
+        if (action.type === 'joined') {
+            return true;
+        }
+        return state;
+    },
+    servers: (state = {
+        activeServer: '',
+        entities: {}
+    }, action) => {
+        if (action.type === 'joined') {
+            return produce(state, state => {
+                state.activeServer = action.data.server.id;
+                state.entities[action.data.server.id] = action.data.server;
+                return state;
+            });
+        }
+        if (action.type === 'server') {
+            return produce(state, state => {
+                state.entities[action.server.id] = action.server;
+                return state;
+            });
+        }
+        return state;
+    },
+    settings: (state = {
+        isSpatialAudioEnabled: true,
+        gainAdjustments: {},
+        isMuted: false,
+    }, action) => {
+        if (action.type === 'set_muted') {
+            return produce(state, state => {
+                state.isMuted = action.isMuted;
                 return state;
             });
         }
         if (action.type === 'update_user_volume') {
             return produce(state, state => {
-                state.settings.gainAdjustments[action.user] = action.volume;
+                state.gainAdjustments[action.user] = action.volume;
                 return state;
             });
         }
-        if (action.type === 'set_muted') {
+        if (action.type === 'set_spatial_audio') {
             return produce(state, state => {
-                state.settings.isMuted = action.isMuted;
+                state.isSpatialAudioEnabled = action.enabled;
                 return state;
             });
         }
+        return state;
+    },
+});
+export const serverStore = configureStore<HarmonyState, HarmonyAction, [SocketMiddleware]>({
+    reducer: (state, action) => {
+        state = childReducer(state, action);
+        // Root actions:
         if (action.type === 'move') {
             return produce(state, state => {
-                const viewer = state.viewer;
-                let newChannel = null;
-                for (const channelID of state.servers[state.activeServer].channels) {
+                const viewer = state.users.viewer;
+                if (!viewer) {
+                    return state;
+                }
+                let newChannel: string | null = null;
+                const servers = state.servers;
+                for (const channelID of servers.entities[servers.activeServer].channels) {
                     const channel = state.channels[channelID];
                     const cnt = [0, 0];
                     for (let i = 0; i < channel.border.length; i++) {
@@ -83,100 +183,26 @@ export const serverStore = configureStore<HarmonyState, HarmonyAction, [SocketMi
                         newChannel = channelID;
                     }
                 }
-                state.users[viewer].channel = newChannel;
-                state.users[viewer].position = { x: action.x, y: action.y };
-                return state;
-            });
-
-        }
-        if (action.type === 'face') {
-            return produce(state, state => {
-                const viewer = state.viewer;
-                const user = state.users[viewer];
-                let dir = { x: action.x - user.position.x, y: action.y - user.position.y };
-                if (dir.x == 0 && dir.y == 0) {
-                    return state;
-                }
-                const dot = Math.sqrt(dir.x * dir.x + dir.y * dir.y);
-                state.users[viewer].dir = { x: dir.x / dot, y: dir.y / dot };
-                return state;
-            });
-        }
-        if (action.type === 'connected') {
-            return { ...state, isConnected: true };
-        }
-        if (action.type === 'joined') {
-            return produce(state, state => {
-                state.isJoined = true;
-                state.viewer = action.id;
-                action.data.users.forEach((user) => {
-                    state.users[user.id] = user;
-                });
-                action.data.channels.forEach((c) => {
-                    state.channels[c.id] = c;
-                });
-                state.servers[action.data.server.id] = action.data.server;
-                state.activeServer = action.data.server.id;
-            });
-        }
-        if (action.type === 'removeUser') {
-            return produce(state, state => {
-                delete state.users[action.id];
-                return state;
-            });
-        }
-        if (action.type === 'user') {
-            return produce(state, state => {
-                if (action.user.id === state.viewer) {
-                    console.log("Ignore returned");
-                    const oldUser = state.users[action.user.id];
-                    state.users[action.user.id] = action.user;
-                    state.users[action.user.id].position = oldUser.position;
-                    state.users[action.user.id].dir = oldUser.dir;
-                } else {
-                    state.users[action.user.id] = action.user;
-                }
-                return state;
-            });
-        }
-        if (action.type === 'server') {
-            return produce(state, state => {
-                state.servers[action.server.id] = action.server;
-                return state;
-            });
-        }
-        if (action.type === 'audio_connect') {
-            return produce(state, state => {
-                state.audioIds[action.peer_id] = String(Math.random());
-                return state;
-            });
-        }
-        if (action.type === 'set_spatial_audio') {
-            return produce(state, state => {
-                state.settings.isSpatialAudioEnabled = action.enabled;
+                state.users.entities[viewer].channel = newChannel;
+                state.users.entities[viewer].position = { x: action.x, y: action.y };
                 return state;
             });
         }
         return state;
-    },
-    preloadedState: {
-        isJoined: false,
-        isConnected: false,
-        activeServer: '',
-        viewer: '',
-        servers: {},
-        channels: {},
-        users: {},
-        audioIds: {},
-        settings: {
-            isSpatialAudioEnabled: true,
-            gainAdjustments: {},
-            isMuted: false,
-        },
-        clientAudioData: {},
-    },
+    }
+    ,
+    preloadedState: {},
     middleware: [reduxSocketMiddleware],
 });
 
+export function serverSelector(state: HarmonyState): Server | undefined {
+    return state.servers.entities[state.servers.activeServer];
+}
+export function userSelector(state: HarmonyState, userID: string): User | undefined {
+    return state.users.entities[userID];
+}
+export function viewerSelector(state: HarmonyState): User | undefined {
+    return userSelector(state, state.users.viewer ?? '');
+}
 
 export const useHarmonySelector = useSelector as <Selected = unknown>(selector: (state: HarmonyState) => Selected, equalityFn?: EqualityFn<Selected> | undefined) => Selected;

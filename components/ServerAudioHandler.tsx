@@ -1,21 +1,23 @@
 import { useEffect, useMemo, useRef, useState } from "react";
-import { useHarmonySelector } from "../lib/ReduxState";
+import {
+  serverSelector,
+  useHarmonySelector,
+  userSelector,
+  viewerSelector,
+} from "../lib/ReduxState";
+import { User } from "../shared/EntTypes";
 import ServerAudioHandlerUser from "./ServerAudioHandlerUser";
 
 export default function ServerAudioHandler() {
   const users = useHarmonySelector(
     (state) => {
-      const server = state.servers[state.activeServer];
-      return server.users.map((u) => state.users[u]);
+      return (
+        serverSelector(state)?.users.map((u) => userSelector(state, u)) ?? []
+      );
     },
     (a, b) => JSON.stringify(a) === JSON.stringify(b)
   );
-  const viewer = useHarmonySelector((state) => {
-    if (state.viewer == null) {
-      return null;
-    }
-    return state.users[state.viewer];
-  });
+  const viewer = useHarmonySelector(viewerSelector);
 
   const [audioCtx, setAudioCtx] = useState<AudioContext | null>(null);
   useEffect(() => {
@@ -50,16 +52,16 @@ export default function ServerAudioHandler() {
   }
   return (
     <>
-      {users
-        .filter((u) => u.id !== viewer?.id)
-        .map((user) => (
+      {(users.filter((u) => u != null && u.id !== viewer?.id) as User[]).map(
+        (user) => (
           <ServerAudioHandlerUser
             audioCtx={audioCtx}
             user={user}
             isInViewerChannel={user.channel === viewer?.channel}
             key={user.id}
           />
-        ))}
+        )
+      )}
     </>
   );
 }

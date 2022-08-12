@@ -13,7 +13,7 @@ export default function ServerAudioHandlerUser({
   user,
   isInViewerChannel,
 }: Props) {
-  const peerId = useHarmonySelector((st) => user.socketId);
+  const peerId = user.socketId;
   const audioId = useHarmonySelector((st) => st.audioIds[user.socketId]);
   const adjustment = useHarmonySelector((state) => {
     return state.settings.gainAdjustments[user.id] ?? 100;

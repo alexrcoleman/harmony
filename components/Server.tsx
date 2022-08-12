@@ -5,7 +5,7 @@ import ServerAudioHandler from "./ServerAudioHandler";
 import { useHarmonySelector } from "../lib/ReduxState";
 
 export default function Server() {
-  const server = useHarmonySelector((s) => s.activeServer);
+  const server = useHarmonySelector((s) => s.servers.activeServer);
   if (!server) {
     return null;
   }

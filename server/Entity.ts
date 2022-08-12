@@ -54,7 +54,7 @@ export default abstract class Entity {
         return state.channels[id] ?? null;
     }
     static addUser(id: string, socketId: string): void {
-        state.users[id] = { id, name: id, socketId, channel: null, color: `rgb(${rand()}, ${rand()}, ${rand()})`, dir: { x: 0, y: 1 }, position: { x: 50, y: 50 } };
+        state.users[id] = { id, name: id, socketId, channel: null, color: `rgb(${rand()}, ${rand()}, ${rand()})`, dir: { x: 0, y: 1 }, position: { x: 50, y: 50 }, isMuted: false };
     }
     static removeUser(id: string): void {
         delete state.users[id];

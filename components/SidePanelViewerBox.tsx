@@ -3,7 +3,11 @@ import { Box, Button, Dialog, IconButton } from "@mui/material";
 import { useEffect, useMemo, useState } from "react";
 import { playNote } from "../lib/AudioUtils";
 import { getLocalStream } from "../lib/reduxSocketMiddleware";
-import { serverStore, useHarmonySelector } from "../lib/ReduxState";
+import {
+  serverStore,
+  useHarmonySelector,
+  viewerSelector,
+} from "../lib/ReduxState";
 import HText from "./HText";
 import SettingsDialog from "./SettingsDialog";
 import UserRing from "./UserRing";
@@ -13,18 +17,8 @@ export default function SidePanelViewerBox() {
   const setIsMuted = (muted: boolean) =>
     serverStore.dispatch({ type: "set_muted", isMuted: muted });
   const [settingsOpen, setSettingsOpen] = useState(false);
-  const userName = useHarmonySelector((state) => {
-    if (!state.viewer) {
-      return null;
-    }
-    return state.users[state.viewer].name;
-  });
-  const userColor = useHarmonySelector((state) => {
-    if (!state.viewer) {
-      return null;
-    }
-    return state.users[state.viewer].color;
-  });
+  const userName = useHarmonySelector((state) => viewerSelector(state)?.name);
+  const userColor = useHarmonySelector((state) => viewerSelector(state)?.color);
 
   const onMute = () => {
     const stream = getLocalStream();

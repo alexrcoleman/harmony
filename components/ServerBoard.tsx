@@ -1,24 +1,33 @@
 import React, { useEffect, useRef, useState } from "react";
-import { serverStore, useHarmonySelector } from "../lib/ReduxState";
+import {
+  serverSelector,
+  serverStore,
+  useHarmonySelector,
+  userSelector,
+  viewerSelector,
+} from "../lib/ReduxState";
+import { User } from "../shared/EntTypes";
 import styles from "./ServerBoard.module.css";
 export default function ServerBoard() {
   const channels = useHarmonySelector(
     (state) => {
-      const server = state.servers[state.activeServer];
-      return server.channels.map((channelID) => state.channels[channelID]);
+      const server = serverSelector(state);
+      return (
+        server?.channels.map((channelID) => state.channels[channelID]) ?? []
+      );
     },
     (a, b) => JSON.stringify(a) === JSON.stringify(b)
   );
   const users = useHarmonySelector(
     (state) => {
-      const server = state.servers[state.activeServer];
-      return server.users.map((id) => state.users[id]);
+      const server = serverSelector(state);
+      return (server?.users.map((id) => userSelector(state, id)) ?? []).filter(
+        Boolean
+      ) as User[];
     },
     (a, b) => JSON.stringify(a) === JSON.stringify(b)
   );
-  const viewerChannel = useHarmonySelector(
-    (st) => st.users[st.viewer ?? ""]?.channel
-  );
+  const viewerChannel = useHarmonySelector((st) => viewerSelector(st)?.channel);
   const dragStart = useRef<{ x: number; y: number } | null>(null);
   const svgRef = useRef<SVGSVGElement>(null);
 
@@ -30,15 +39,17 @@ export default function ServerBoard() {
     if (!isLeft && !isRight && !isDown && !isUp) {
       return;
     }
-
-    const timeout = setInterval(() => {
+    const update = () => {
       const st = serverStore.getState();
       const speed = 5;
+      const u = viewerSelector(st);
+      if (!u) {
+        return;
+      }
+      const p = u.position;
+      const d = u.dir;
       if (isUp || isDown) {
         const scale = isUp ? speed : -speed;
-        const u = st.users[st.viewer ?? ""];
-        const p = u.position;
-        const d = u.dir;
         serverStore.dispatch({
           type: "move",
           x: p.x + d.x * scale,
@@ -47,16 +58,16 @@ export default function ServerBoard() {
       }
       if (isLeft || isRight) {
         const scale = isRight ? 2 : -2;
-        const u = st.users[st.viewer ?? ""];
-        const p = u.position;
-        const d = u.dir;
         serverStore.dispatch({
           type: "face",
           x: p.x + (d.x * 5 - d.y * scale) * 10,
           y: p.y + (d.y * 5 + d.x * scale) * 10,
         });
       }
-    }, 50);
+    };
+
+    update();
+    const timeout = setInterval(update, 50);
     return () => clearTimeout(timeout);
   }, [isLeft, isRight, isDown, isUp]);
   return (

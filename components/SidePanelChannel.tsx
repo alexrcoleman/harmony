@@ -1,8 +1,15 @@
-import { serverStore, useHarmonySelector } from "../lib/ReduxState";
+import {
+  serverSelector,
+  serverStore,
+  useHarmonySelector,
+  userSelector,
+  viewerSelector,
+} from "../lib/ReduxState";
 import HText from "./HText";
 import SidePanelUser from "./SidePanelUser";
 import styles from "./SidePanelChannel.module.css";
 import { useMemo } from "react";
+import { User } from "../shared/EntTypes";
 
 export default function SidePanelChannel({
   channel: channelID,
@@ -11,9 +18,9 @@ export default function SidePanelChannel({
 }) {
   const users = useHarmonySelector(
     (state) => {
-      return state.servers[state.activeServer].users
-        .map((u) => state.users[u])
-        .filter((user) => user != null && user.channel === channelID);
+      return (serverSelector(state)?.users ?? [])
+        .map((u) => userSelector(state, u))
+        .filter((user) => user != null && user.channel === channelID) as User[];
     },
     (a, b) => JSON.stringify(a) === JSON.stringify(b)
   );
@@ -35,7 +42,7 @@ export default function SidePanelChannel({
     cy /= (channel?.border ?? []).length;
     return { cx: isNaN(cx) ? 0 : cx, cy: isNaN(cy) ? 0 : cy };
   }, [channel]);
-  const viewer = useHarmonySelector((state) => state.viewer);
+  const viewer = useHarmonySelector((state) => viewerSelector(state)?.id);
   return (
     <div style={{ fontSize: 14 }}>
       <div
