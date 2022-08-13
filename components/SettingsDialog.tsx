@@ -1,23 +1,24 @@
 import {
   Box,
-  Checkbox,
   DialogContent,
   DialogTitle,
   FormControlLabel,
   Slider,
   Switch,
 } from "@mui/material";
-import { useState } from "react";
-import { getAudioSettings } from "../lib/reduxSocketMiddleware";
 import { serverStore, useHarmonySelector } from "../lib/ReduxState";
 import HText from "./HText";
 
 export default function SettingsDialog() {
-  const { gainNode, context } = getAudioSettings();
   const isSpatialAudioEnabled = useHarmonySelector(
     (state) => state.settings.isSpatialAudioEnabled
   );
-  const [volume, setVolume] = useState((gainNode?.gain.value ?? 0) * 100);
+  const volume = useHarmonySelector((state) =>
+    Math.round((state.settings.localInputGain ?? 0) * 100)
+  );
+  const setVolume = (volume: number) => {
+    serverStore.dispatch({ type: "settings/updateLocalInputGain", volume });
+  };
   const viewerDB = useHarmonySelector(
     (state) => state.clientAudioData["_viewer"]?.volume ?? 0
   );
@@ -47,16 +48,8 @@ export default function SettingsDialog() {
                 <Slider
                   value={volume}
                   onChange={(e, value) => {
-                    if (gainNode) {
-                      const percent = Array.isArray(value) ? value[0] : value;
-                      const gain = percent / 100;
-                      setVolume(percent);
-                      console.log(gain);
-                      gainNode.gain.exponentialRampToValueAtTime(
-                        gain,
-                        (context?.currentTime ?? 0) + 0.5
-                      );
-                    }
+                    const percent = Array.isArray(value) ? value[0] : value;
+                    setVolume(percent);
                   }}
                   min={0.1}
                   max={300}
@@ -70,16 +63,7 @@ export default function SettingsDialog() {
                 <Slider
                   value={100}
                   onChange={(e, value) => {
-                    if (gainNode) {
-                      // const percent = Array.isArray(value) ? value[0] : value;
-                      // const gain = percent / 100;
-                      // setVolume(percent);
-                      // console.log(gain);
-                      // gainNode.gain.exponentialRampToValueAtTime(
-                      //   gain,
-                      //   (context?.currentTime ?? 0) + 0.5
-                      // );
-                    }
+                    // TODO: Adjust output volume
                   }}
                   min={0}
                   max={300}

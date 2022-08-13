@@ -10,6 +10,7 @@ type Props = {
   weight?: "regular" | "bold" | "semibold" | "inherit";
   size?: "h1" | "h2" | "h3" | "body1" | "body2" | "inherit";
 };
+
 export default function HText({
   color = "inherit",
   weight = "inherit",
@@ -19,41 +20,34 @@ export default function HText({
   return (
     <span
       style={{
-        color:
-          color === "primary"
-            ? "var(--text)"
-            : color === "header"
-            ? "var(--header-text)"
-            : color === "header-light"
-            ? "var(--header-text-light)"
-            : color === "white"
-            ? "var(--white)"
-            : color === "secondary"
-            ? "var(--secondary-text)"
-            : undefined,
-        fontWeight:
-          weight === "regular"
-            ? 400
-            : weight === "bold"
-            ? 700
-            : weight === "semibold"
-            ? 600
-            : undefined,
-        fontSize:
-          size === "h1"
-            ? 25
-            : size === "h2"
-            ? 20
-            : size === "h3"
-            ? 16
-            : size === "body1"
-            ? 15
-            : size === "body2"
-            ? 12
-            : undefined,
+        color: colors[color],
+        fontWeight: weights[weight],
+        fontSize: sizes[size],
       }}
     >
       {children}
     </span>
   );
 }
+
+const colors = {
+  primary: "var(--text)",
+  header: "var(--header-text)",
+  ["header-light"]: "var(--header-text-light)",
+  white: "var(--white)",
+  secondary: "var(--secondary-text)",
+};
+
+const sizes = {
+  h1: 25,
+  h2: 20,
+  h3: 16,
+  body1: 15,
+  body2: 12,
+};
+
+const weights = {
+  regular: 400,
+  semibold: 600,
+  bold: 700,
+};

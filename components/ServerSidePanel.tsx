@@ -3,9 +3,7 @@ import { serverSelector, useHarmonySelector } from "../lib/ReduxState";
 import { useRouter } from "next/router";
 import HText from "./HText";
 import SidePanelChannel from "./SidePanelChannel";
-import SidePanelUser from "./SidePanelUser";
 import SidePanelViewerBox from "./SidePanelViewerBox";
-import { Button } from "@mui/material";
 import ConnectionBox from "./ConnectionBox";
 
 export default function ServerSidePanel() {

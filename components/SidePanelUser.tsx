@@ -25,7 +25,7 @@ export default function SidePanelUser({ userID }: Props) {
     );
   });
   const adjustment = useHarmonySelector((state) => {
-    return state.settings.gainAdjustments[audioId] ?? 100;
+    return Math.round((state.settings.gainAdjustments[audioId] ?? 1) * 100);
   });
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [menuPos, setMenuPos] = useState({ left: 0, top: 0 });
@@ -80,7 +80,7 @@ export default function SidePanelUser({ userID }: Props) {
           <Slider
             onChange={(e, v) =>
               serverStore.dispatch({
-                type: "update_user_volume",
+                type: "settings/updateGainAdjustment",
                 user: userID,
                 volume: Array.isArray(v) ? v[0] : v,
               })

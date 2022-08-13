@@ -1,8 +1,7 @@
 import { Mic, MicOff, Settings } from "@mui/icons-material";
-import { Box, Button, Dialog, IconButton } from "@mui/material";
-import { useEffect, useMemo, useState } from "react";
+import { Box, Dialog, IconButton } from "@mui/material";
+import { useEffect, useState } from "react";
 import { playNote } from "../lib/AudioUtils";
-import { getLocalStream } from "../lib/reduxSocketMiddleware";
 import {
   serverStore,
   useHarmonySelector,
@@ -15,36 +14,23 @@ import UserRing from "./UserRing";
 export default function SidePanelViewerBox() {
   const isMuted = useHarmonySelector((state) => state.settings.isMuted);
   const setIsMuted = (muted: boolean) =>
-    serverStore.dispatch({ type: "set_muted", isMuted: muted });
+    serverStore.dispatch({ type: "settings/setMuted", isMuted: muted });
   const [settingsOpen, setSettingsOpen] = useState(false);
   const userName = useHarmonySelector((state) => viewerSelector(state)?.name);
   const userColor = useHarmonySelector((state) => viewerSelector(state)?.color);
 
   const onMute = () => {
-    const stream = getLocalStream();
-    if (stream) {
-      setIsMuted(true);
-      stream.getAudioTracks()[0].enabled = false;
-      playNote(293.66);
-      playNote(246.94, 125);
-    }
+    setIsMuted(true);
+    playNote(293.66);
+    playNote(246.94, 125);
   };
   const onUnmute = () => {
-    const stream = getLocalStream();
-    if (stream) {
-      setIsMuted(false);
-      stream.getAudioTracks()[0].enabled = true;
-      playNote(246.94);
-      playNote(293.66, 125);
-    }
+    setIsMuted(false);
+    playNote(246.94);
+    playNote(293.66, 125);
   };
   const onToggleMute = () => {
-    const stream = getLocalStream();
-    if (!stream) {
-      return;
-    }
-    const isEnabled = stream.getAudioTracks()[0].enabled;
-    if (isEnabled) {
+    if (!isMuted) {
       onMute();
     } else {
       onUnmute();

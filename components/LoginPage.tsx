@@ -48,9 +48,6 @@ export default function LoginPage() {
                 onChange={(e) => setUsername(e.target.value)}
               />
             </Box>
-            {/* <Box paddingTop="20px" alignSelf="stretch">
-              <TextField variant="filled" label="Password" fullWidth />
-            </Box> */}
             <Box paddingTop="30px" alignSelf="stretch">
               <Button fullWidth variant="contained" type="submit">
                 Login

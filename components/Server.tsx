@@ -1,6 +1,5 @@
 import ServerBoard from "./ServerBoard";
 import ServerSidePanel from "./ServerSidePanel";
-import { Provider } from "react-redux";
 import ServerAudioHandler from "./ServerAudioHandler";
 import { useHarmonySelector } from "../lib/ReduxState";
 

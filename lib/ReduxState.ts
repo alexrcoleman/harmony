@@ -12,7 +12,7 @@ export type HarmonyState = {
     channels: Record<string, Channel>;
     servers: { activeServer: string, entities: Record<string, Server>; };
     audioIds: Record<string, string>;
-    settings: { isSpatialAudioEnabled: boolean; gainAdjustments: Record<string, number>; isMuted: boolean; };
+    settings: { isSpatialAudioEnabled: boolean; gainAdjustments: Record<string, number>; isMuted: boolean; localInputGain: number; };
     clientAudioData: Record<string, { isTalking: boolean; volume: number; }>;
 };
 export type HarmonyAction =
@@ -28,8 +28,10 @@ export type HarmonyAction =
     | { type: 'audio_connect'; peer_id: string; }
     | { type: 'set_spatial_audio', enabled: boolean; }
     | { type: 'update_audio', volume: number; user: string; }
-    | { type: 'set_muted'; isMuted: boolean; }
-    | { type: 'update_user_volume'; user: string; volume: number; }
+    | { type: 'settings/setMuted'; isMuted: boolean; }
+    | { type: 'settings/updateGainAdjustment'; user: string; volume: number; }
+    | { type: 'settings/updateLocalInputGain', volume: number; }
+    | { type: 'rtc/subscribeToPeerStream', handler: (stream: MediaStream) => void, peerId: string; }
     | { type: 'logout'; };
 
 const childReducer = combineReducers<HarmonyState, HarmonyAction>({
@@ -136,16 +138,23 @@ const childReducer = combineReducers<HarmonyState, HarmonyAction>({
         isSpatialAudioEnabled: true,
         gainAdjustments: {},
         isMuted: false,
+        localInputGain: 1,
     }, action) => {
-        if (action.type === 'set_muted') {
+        if (action.type === 'settings/setMuted') {
             return produce(state, state => {
                 state.isMuted = action.isMuted;
                 return state;
             });
         }
-        if (action.type === 'update_user_volume') {
+        if (action.type === 'settings/updateLocalInputGain') {
             return produce(state, state => {
-                state.gainAdjustments[action.user] = action.volume;
+                state.localInputGain = action.volume / 100;
+                return state;
+            });
+        }
+        if (action.type === 'settings/updateGainAdjustment') {
+            return produce(state, state => {
+                state.gainAdjustments[action.user] = action.volume / 100;
                 return state;
             });
         }

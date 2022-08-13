@@ -6,7 +6,7 @@ export type ServerToClientEvents = {
     updateServer: (server: Server) => void;
     addPeer: (data: { peer_id: string, should_create_offer: boolean; }) => void;
     sessionDescription: (data: { peer_id: string, session_description: RTCSessionDescriptionInit; }) => void;
-    iceCandidate: (data: { peer_id: string, ice_candidate: unknown; }) => void;
+    iceCandidate: (data: { peer_id: string, ice_candidate: RTCIceCandidateInit; }) => void;
     removePeer: (id: string) => void;
 
 };
@@ -16,6 +16,6 @@ export type ClientToServerEvents = {
     move: (loc: { x: number, y: number; }) => void;
     face: (loc: { x: number, y: number; }) => void;
     relaySessionDescription: (data: { peer_id: string, session_description: RTCSessionDescriptionInit; }) => void;
-    relayICECandidate: (data: { peer_id: string, ice_candidate: unknown; }) => void;
+    relayICECandidate: (data: { peer_id: string, ice_candidate: RTCIceCandidateInit; }) => void;
     set_muted: (muted: boolean) => void;
 }; 

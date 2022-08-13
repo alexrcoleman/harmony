@@ -1,5 +1,4 @@
-import { useEffect, useMemo, useRef, useState } from "react";
-import { getAudioStream } from "../lib/reduxSocketMiddleware";
+import { useEffect, useMemo, useRef } from "react";
 import { serverStore, useHarmonySelector } from "../lib/ReduxState";
 import type { User } from "../shared/EntTypes";
 
@@ -16,7 +15,7 @@ export default function ServerAudioHandlerUser({
   const peerId = user.socketId;
   const audioId = useHarmonySelector((st) => st.audioIds[user.socketId]);
   const adjustment = useHarmonySelector((state) => {
-    return state.settings.gainAdjustments[user.id] ?? 100;
+    return state.settings.gainAdjustments[user.id] ?? 1;
   });
   const panner = useMemo(
     () =>
@@ -51,10 +50,7 @@ export default function ServerAudioHandlerUser({
   }, [user]);
   // Update gain
   useEffect(() => {
-    const gain = Math.max(
-      0.0001,
-      (adjustment / 100) * (isInViewerChannel ? 1 : 0.2)
-    );
+    const gain = Math.max(0.0001, adjustment * (isInViewerChannel ? 1 : 0.2));
     gainNode.gain.exponentialRampToValueAtTime(
       gain,
       audioCtx.currentTime + 0.5
@@ -64,18 +60,18 @@ export default function ServerAudioHandlerUser({
   // Connect to audio element
   const audioElementRef = useRef<null | HTMLAudioElement>(null);
   useEffect(() => {
-    // const audioElement = audioElementRef.current;
     if (audioId != null) {
-      const stream = getAudioStream(peerId);
-      console.log("Connecting audio stream to context:");
-      console.log(stream);
-      let track: AudioNode = audioCtx.createMediaStreamSource(stream);
-      // audioElement.srcObject = stream;
-      // let track: AudioNode = audioCtx.createMediaElementSource(audioElement);
-      track = track.connect(panner);
-      track = track.connect(gainNode);
-      track = track.connect(analyserNode);
-      track.connect(audioCtx.destination);
+      serverStore.dispatch({
+        type: "rtc/subscribeToPeerStream",
+        peerId,
+        handler: (stream) => {
+          let track: AudioNode = audioCtx.createMediaStreamSource(stream);
+          track = track.connect(panner);
+          track = track.connect(gainNode);
+          track = track.connect(analyserNode);
+          track.connect(audioCtx.destination);
+        },
+      });
       return () => {
         panner.disconnect();
         gainNode.disconnect();
