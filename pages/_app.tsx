@@ -1,6 +1,10 @@
 import { Provider } from "react-redux";
 import "../styles/global.css";
-import { serverStore, useHarmonySelector } from "../client/lib/ReduxState";
+import {
+  serverStore,
+  useHarmonyDispatch,
+  useHarmonySelector,
+} from "../client/lib/ReduxState";
 import { useEffect } from "react";
 import HText from "../client/components/HText";
 import Head from "next/head";
@@ -27,9 +31,10 @@ export default function App({ Component, pageProps }) {
   );
 }
 function Wrapper({ children }) {
+  const dispatch = useHarmonyDispatch();
   const isConnected = useHarmonySelector((store) => store.isConnected);
   useEffect(() => {
-    serverStore.dispatch({ type: "connect" });
+    dispatch({ type: "connect" });
   }, []);
   if (!isConnected) {
     return (

@@ -1,5 +1,5 @@
-import { combineReducers, configureStore } from "@reduxjs/toolkit";
-import { useSelector } from "react-redux";
+import { combineReducers, configureStore, Dispatch } from "@reduxjs/toolkit";
+import { useDispatch, useSelector, useStore } from "react-redux";
 import produce from "immer";
 import type { EqualityFn } from "react-redux";
 import { Channel, Server, User } from "../../shared/EntTypes";
@@ -260,3 +260,6 @@ export const useHarmonySelector = useSelector as <Selected = unknown>(
   selector: (state: HarmonyState) => Selected,
   equalityFn?: EqualityFn<Selected> | undefined
 ) => Selected;
+
+export const useHarmonyDispatch = useDispatch as () => Dispatch<HarmonyAction>;
+export const useHarmonyStore = useStore as () => typeof serverStore;

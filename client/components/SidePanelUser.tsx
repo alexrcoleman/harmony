@@ -2,7 +2,7 @@ import { MicOff } from "@mui/icons-material";
 import { Box, Menu, Slider } from "@mui/material";
 import { useState } from "react";
 import {
-  serverStore,
+  useHarmonyDispatch,
   useHarmonySelector,
   userSelector,
 } from "../lib/ReduxState";
@@ -13,6 +13,7 @@ type Props = {
   userID: string;
 };
 export default function SidePanelUser({ userID }: Props) {
+  const dispatch = useHarmonyDispatch();
   const isViewer = useHarmonySelector((state) => state.users.viewer === userID);
   const audioId = isViewer ? "_viewer" : userID;
   const user = useHarmonySelector((state) => userSelector(state, userID));
@@ -79,7 +80,7 @@ export default function SidePanelUser({ userID }: Props) {
           </HText>
           <Slider
             onChange={(e, v) =>
-              serverStore.dispatch({
+              dispatch({
                 type: "settings/updateGainAdjustment",
                 user: userID,
                 volume: Array.isArray(v) ? v[0] : v,

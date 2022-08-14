@@ -1,6 +1,6 @@
 import React from "react";
 import { useEffect, useMemo } from "react";
-import { serverStore, useHarmonySelector } from "../lib/ReduxState";
+import { useHarmonyDispatch, useHarmonySelector } from "../lib/ReduxState";
 import type { User } from "../../shared/EntTypes";
 
 type Props = {
@@ -14,6 +14,7 @@ export default function ServerAudioHandlerUser({
   isInViewerChannel,
 }: Props) {
   const peerId = user.socketId;
+  const dispatch = useHarmonyDispatch();
   const audioId = useHarmonySelector((st) => st.audioIds[user.socketId]);
   const adjustment = useHarmonySelector((state) => {
     return state.settings.gainAdjustments[user.id] ?? 1;
@@ -60,7 +61,7 @@ export default function ServerAudioHandlerUser({
 
   useEffect(() => {
     if (audioId != null) {
-      serverStore.dispatch({
+      dispatch({
         type: "rtc/subscribeToPeerStream",
         peerId,
         handler: (stream) => {
@@ -83,7 +84,7 @@ export default function ServerAudioHandlerUser({
     const fn = () => {
       analyserNode.getFloatTimeDomainData(pcmData);
       const peak = pcmData.reduce((max, v) => Math.max(max, v));
-      serverStore.dispatch({
+      dispatch({
         type: "update_audio",
         user: user.id,
         volume: peak,

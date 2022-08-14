@@ -1,5 +1,6 @@
+import { Dispatch } from "@reduxjs/toolkit";
 import { HarmonySocket } from "./reduxSocketMiddleware";
-import { serverStore } from "./ReduxState";
+import { HarmonyAction } from "./ReduxState";
 
 export type RTCPoolData = {
   context: AudioContext;
@@ -7,7 +8,10 @@ export type RTCPoolData = {
   peerStreams: Record<string, MediaStream>;
   localStream: MediaStream;
 };
-export async function setupWebRTC(socket: HarmonySocket): Promise<RTCPoolData> {
+export async function setupWebRTC(
+  socket: HarmonySocket,
+  dispatch: Dispatch<HarmonyAction>
+): Promise<RTCPoolData> {
   const peerStreams: Record<string, MediaStream> = {};
   const peers: Record<string, RTCPeerConnection> = {};
   const context = new AudioContext();
@@ -34,7 +38,7 @@ export async function setupWebRTC(socket: HarmonySocket): Promise<RTCPoolData> {
   const fn = () => {
     analyserNode.getFloatTimeDomainData(pcmData);
     const peak = pcmData.reduce((max, v) => Math.max(max, v));
-    serverStore.dispatch({
+    dispatch({
       type: "update_audio",
       user: "_viewer",
       volume: dest.stream.getAudioTracks()[0].enabled ? peak : 0,
@@ -64,7 +68,7 @@ export async function setupWebRTC(socket: HarmonySocket): Promise<RTCPoolData> {
       }
     };
     peer_connection.ontrack = function (event) {
-      serverStore.dispatch({ type: "audio_connect", peer_id: peer_id });
+      dispatch({ type: "audio_connect", peer_id: peer_id });
       peerStreams[peer_id] = event.streams[0];
 
       let audio = document.createElement("audio");

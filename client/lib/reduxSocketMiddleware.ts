@@ -5,7 +5,7 @@ import {
   ClientToServerEvents,
   ServerToClientEvents,
 } from "../../shared/SocketTypes";
-import { HarmonyAction, HarmonyState, serverStore } from "./ReduxState";
+import { HarmonyAction, HarmonyState } from "./ReduxState";
 import { RTCPoolData, setupWebRTC } from "./WebRTCSetup";
 
 export type HarmonySocket = Socket<ServerToClientEvents, ClientToServerEvents>;
@@ -49,7 +49,9 @@ const reduxSocketMiddleware: SocketMiddleware = (store) => {
     if (socket && store.getState().isConnected) {
       if (action.type === "login") {
         if (!rtcData) {
-          rtcData = await setupWebRTC(socket);
+          rtcData = await setupWebRTC(socket, (action) =>
+            store.dispatch(action)
+          );
         }
         socket.emit("login", action.id, (success, data) => {
           if (success && data) {

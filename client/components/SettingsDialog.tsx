@@ -6,7 +6,7 @@ import {
   Slider,
   Switch,
 } from "@mui/material";
-import { serverStore, useHarmonySelector } from "../lib/ReduxState";
+import { useHarmonyDispatch, useHarmonySelector } from "../lib/ReduxState";
 import HText from "./HText";
 
 export default function SettingsDialog() {
@@ -16,8 +16,9 @@ export default function SettingsDialog() {
   const volume = useHarmonySelector((state) =>
     Math.round((state.settings.localInputGain ?? 0) * 100)
   );
+  const dispatch = useHarmonyDispatch();
   const setVolume = (volume: number) => {
-    serverStore.dispatch({ type: "settings/updateLocalInputGain", volume });
+    dispatch({ type: "settings/updateLocalInputGain", volume });
   };
   const viewerDB = useHarmonySelector(
     (state) => state.clientAudioData["_viewer"]?.volume ?? 0
@@ -32,7 +33,7 @@ export default function SettingsDialog() {
               control={
                 <Switch
                   onClick={() =>
-                    serverStore.dispatch({
+                    dispatch({
                       type: "set_spatial_audio",
                       enabled: !isSpatialAudioEnabled,
                     })

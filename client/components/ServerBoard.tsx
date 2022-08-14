@@ -1,14 +1,18 @@
 import React, { useEffect, useRef, useState } from "react";
 import {
   serverSelector,
-  serverStore,
+  useHarmonyDispatch,
   useHarmonySelector,
+  useHarmonyStore,
   userSelector,
   viewerSelector,
 } from "../lib/ReduxState";
 import { User } from "../../shared/EntTypes";
 import styles from "./ServerBoard.module.css";
+
 export default function ServerBoard() {
+  const dispatch = useHarmonyDispatch();
+  const store = useHarmonyStore();
   const channels = useHarmonySelector(
     (state) => {
       const server = serverSelector(state);
@@ -40,7 +44,7 @@ export default function ServerBoard() {
       return;
     }
     const update = () => {
-      const st = serverStore.getState();
+      const st = store.getState();
       const speed = 5;
       const u = viewerSelector(st);
       if (!u) {
@@ -50,7 +54,7 @@ export default function ServerBoard() {
       const d = u.dir;
       if (isUp || isDown) {
         const scale = isUp ? speed : -speed;
-        serverStore.dispatch({
+        dispatch({
           type: "move",
           x: p.x + d.x * scale,
           y: p.y + d.y * scale,
@@ -58,7 +62,7 @@ export default function ServerBoard() {
       }
       if (isLeft || isRight) {
         const scale = isRight ? 2 : -2;
-        serverStore.dispatch({
+        dispatch({
           type: "face",
           x: p.x + (d.x * 5 - d.y * scale) * 10,
           y: p.y + (d.y * 5 + d.x * scale) * 10,
@@ -82,7 +86,7 @@ export default function ServerBoard() {
           const x = e.clientX - rect.left; //x position within the element.
           const y = e.clientY - rect.top;
           dragStart.current = { x, y };
-          serverStore.dispatch({ type: "move", x, y });
+          dispatch({ type: "move", x, y });
         }}
         onMouseMove={(e) => {
           if (dragStart.current != null) {
@@ -90,7 +94,7 @@ export default function ServerBoard() {
             const rect = (svgRef.current as SVGElement).getBoundingClientRect();
             const x = e.clientX - rect.left; //x position within the element.
             const y = e.clientY - rect.top;
-            serverStore.dispatch({ type: "face", x, y });
+            dispatch({ type: "face", x, y });
           }
         }}
         onMouseUp={(e) => {

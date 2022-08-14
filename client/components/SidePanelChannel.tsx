@@ -1,6 +1,6 @@
 import {
   serverSelector,
-  serverStore,
+  useHarmonyDispatch,
   useHarmonySelector,
   userSelector,
   viewerSelector,
@@ -16,6 +16,7 @@ export default function SidePanelChannel({
 }: {
   channel: string | null;
 }) {
+  const dispatch = useHarmonyDispatch();
   const users = useHarmonySelector(
     (state) => {
       return (serverSelector(state)?.users ?? [])
@@ -51,8 +52,8 @@ export default function SidePanelChannel({
         onClick={() => {
           const x = (isNaN(cx) ? 0 : cx) + Math.floor(Math.random() * 40 - 20);
           const y = (isNaN(cy) ? 0 : cy) + Math.floor(Math.random() * 40 - 20);
-          serverStore.dispatch({ type: "move", x, y });
-          serverStore.dispatch({ type: "face", x: cx, y: cy });
+          dispatch({ type: "move", x, y });
+          dispatch({ type: "face", x: cx, y: cy });
         }}
       >
         <HText

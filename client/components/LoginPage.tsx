@@ -1,11 +1,12 @@
-import { Box, Button, FilledInput, TextField } from "@mui/material";
+import { Box, Button, TextField } from "@mui/material";
 import { useState } from "react";
-import { serverStore } from "../lib/ReduxState";
+import { useHarmonyDispatch } from "../lib/ReduxState";
 import { Card } from "./Card";
 import HText from "./HText";
 
 export default function LoginPage() {
   const [username, setUsername] = useState("");
+  const dispatch = useHarmonyDispatch();
   return (
     <div
       style={{
@@ -24,7 +25,7 @@ export default function LoginPage() {
             if (!username) {
               return;
             }
-            serverStore.dispatch({ type: "login", id: username });
+            dispatch({ type: "login", id: username });
           }}
         >
           <Box
