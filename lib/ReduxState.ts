@@ -202,6 +202,11 @@ export const serverStore = configureStore<HarmonyState, HarmonyAction, [SocketMi
     ,
     preloadedState: {},
     middleware: [reduxSocketMiddleware],
+    enhancers: [(next) => (reducer, initialState) => {
+        const store = next(reducer, initialState);
+        // Testing this setup
+        return store;
+    }],
 });
 
 export function serverSelector(state: HarmonyState): Server | undefined {

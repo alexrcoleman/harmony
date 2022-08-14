@@ -23,6 +23,9 @@ export default function ServerAudioHandler() {
   useEffect(() => {
     const audioCtx = new window.AudioContext();
     setAudioCtx(audioCtx);
+    // const gainNode = audioCtx.createGain();
+    // gainNode.gain.value = 0.2;
+    // gainNode.connect(audioCtx.destination);
 
     const listener = audioCtx.listener;
 
@@ -40,7 +43,7 @@ export default function ServerAudioHandler() {
       return;
     }
     const listener = audioCtx.listener;
-    const time = audioCtx.currentTime + 0.5;
+    const time = audioCtx.currentTime + 0.2;
     listener.positionX.linearRampToValueAtTime(viewer.position.x, time);
     listener.positionY.linearRampToValueAtTime(viewer.position.y, time);
     listener.forwardX.linearRampToValueAtTime(viewer.dir.x, time);

@@ -42,7 +42,7 @@ export default function ServerAudioHandlerUser({
 
   // Update panner position
   useEffect(() => {
-    const time = audioCtx.currentTime + 0.5;
+    const time = audioCtx.currentTime + 0.2;
     panner.positionX.linearRampToValueAtTime(user.position.x, time);
     panner.positionY.linearRampToValueAtTime(user.position.y, time);
     panner.orientationX.linearRampToValueAtTime(user.dir.x, time);
@@ -53,7 +53,7 @@ export default function ServerAudioHandlerUser({
     const gain = Math.max(0.0001, adjustment * (isInViewerChannel ? 1 : 0.2));
     gainNode.gain.exponentialRampToValueAtTime(
       gain,
-      audioCtx.currentTime + 0.5
+      audioCtx.currentTime + 0.2
     );
   }, [isInViewerChannel, adjustment]);
 
