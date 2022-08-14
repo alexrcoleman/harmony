@@ -2,7 +2,7 @@ import { combineReducers, configureStore } from "@reduxjs/toolkit";
 import { useSelector } from "react-redux";
 import produce from "immer";
 import type { EqualityFn } from "react-redux";
-import { Channel, Server, User } from "../shared/EntTypes";
+import { Channel, Server, User } from "../../shared/EntTypes";
 import reduxSocketMiddleware, {
   SocketMiddleware,
 } from "./reduxSocketMiddleware";

@@ -9,7 +9,7 @@ import HText from "./HText";
 import SidePanelUser from "./SidePanelUser";
 import styles from "./SidePanelChannel.module.css";
 import { useMemo } from "react";
-import { User } from "../shared/EntTypes";
+import { User } from "../../shared/EntTypes";
 
 export default function SidePanelChannel({
   channel: channelID,

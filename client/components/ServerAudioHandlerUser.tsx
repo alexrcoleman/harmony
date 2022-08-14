@@ -1,6 +1,7 @@
-import { useEffect, useMemo, useRef } from "react";
+import React from "react";
+import { useEffect, useMemo } from "react";
 import { serverStore, useHarmonySelector } from "../lib/ReduxState";
-import type { User } from "../shared/EntTypes";
+import type { User } from "../../shared/EntTypes";
 
 type Props = {
   audioCtx: AudioContext;
@@ -57,8 +58,6 @@ export default function ServerAudioHandlerUser({
     );
   }, [isInViewerChannel, adjustment]);
 
-  // Connect to audio element
-  const audioElementRef = useRef<null | HTMLAudioElement>(null);
   useEffect(() => {
     if (audioId != null) {
       serverStore.dispatch({
@@ -94,9 +93,5 @@ export default function ServerAudioHandlerUser({
     return () => clearInterval(interval);
   }, []);
 
-  return (
-    // <div />
-    // <audio id={"audio:" + user.id} ref={audioElementRef} autoPlay={false} />
-    <audio ref={audioElementRef} autoPlay={false} />
-  );
+  return <React.Fragment />;
 }

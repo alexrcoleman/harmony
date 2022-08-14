@@ -6,7 +6,7 @@ import {
   userSelector,
   viewerSelector,
 } from "../lib/ReduxState";
-import { User } from "../shared/EntTypes";
+import { User } from "../../shared/EntTypes";
 import styles from "./ServerBoard.module.css";
 export default function ServerBoard() {
   const channels = useHarmonySelector(

@@ -1,11 +1,11 @@
 import { Provider } from "react-redux";
 import "../styles/global.css";
-import { serverStore, useHarmonySelector } from "../lib/ReduxState";
+import { serverStore, useHarmonySelector } from "../client/lib/ReduxState";
 import { useEffect } from "react";
-import HText from "../components/HText";
+import HText from "../client/components/HText";
 import Head from "next/head";
 import { ThemeProvider } from "@mui/material";
-import theme from "../components/theme";
+import theme from "../client/components/theme";
 
 export default function App({ Component, pageProps }) {
   return (

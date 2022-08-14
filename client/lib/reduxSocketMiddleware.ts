@@ -4,7 +4,7 @@ import { io, Socket } from "socket.io-client";
 import {
   ClientToServerEvents,
   ServerToClientEvents,
-} from "../shared/SocketTypes";
+} from "../../shared/SocketTypes";
 import { HarmonyAction, HarmonyState, serverStore } from "./ReduxState";
 import { RTCPoolData, setupWebRTC } from "./WebRTCSetup";
 

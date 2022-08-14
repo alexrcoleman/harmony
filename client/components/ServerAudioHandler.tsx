@@ -1,11 +1,11 @@
-import { useEffect, useMemo, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   serverSelector,
   useHarmonySelector,
   userSelector,
   viewerSelector,
 } from "../lib/ReduxState";
-import { User } from "../shared/EntTypes";
+import { User } from "../../shared/EntTypes";
 import ServerAudioHandlerUser from "./ServerAudioHandlerUser";
 
 export default function ServerAudioHandler() {
